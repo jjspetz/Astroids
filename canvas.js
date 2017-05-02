@@ -21,6 +21,27 @@ window.onload = function() {
    'images/astroid3.png',
    'images/astroid4.png'];
 
+   var Key = {
+     _pressed: {},
+
+     A: 65,
+     W: 87,
+     D: 68,
+     S: 83,
+
+     isDown: function(keyCode) {
+       return this._pressed[keyCode];
+     },
+
+     onKeydown: function(event) {
+       this._pressed[event.keyCode] = true;
+     },
+
+     onKeyup: function(event) {
+       delete this._pressed[event.keyCode];
+     }
+   };
+
 class Astroid {
   constructor(filename) {
      this.src = filename;
@@ -50,16 +71,28 @@ class Ship {
     this.pos = [x, y]
   }
 }
+Ship.prototype.update = function() {
+  if (Key.isDown(Key.W)) {
+    this.pos[1] -= 2 * this.speed;
+  };
+  if (Key.isDown(Key.A)) {
+    this.pos[0] -= 2 * this.speed;
+  };
+  if (Key.isDown(Key.S)) {
+    this.pos[1] += 2 * this.speed;
+  };
+  if (Key.isDown(Key.D)) {
+    this.pos[0] += 2 * this.speed;
+  };
+  render(this.src, this.pos[0], this.pos[1]);
+};
 
-function render(src, x, y, dWidth, dHeight) {
+function render(src, x, y, dWidth=60, dHeight=60) {
   var img = new Image();
   img.onload = function() {ctx.drawImage(img, x, y, dWidth, dHeight)};
   img.src = src;
 }
 
-function moveShip(x, y) {
-
-}
 
 function move (x, y, choice, speed) {
 
@@ -120,15 +153,8 @@ for (var i=0; i<12; i++) {
 this.ship = new Ship('images/spaceship.png', canvas.width/2, canvas.height/2)
 
 // event listener
-document.addEventListener('keydown', function(event) {
-  if (event.keyCode == '65') { // a key
-    this.ship.pos[0] -= 2;
-    alert('a');
-  }
-  if (event.keyCode == '119') { // w key
-    this.ship.pos[1] -= 2;
-  }
-  }, false);
+window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
+window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);
 
 // start game loop
 // set up variables
@@ -152,9 +178,7 @@ this.pos = this.ship.pos;
 
   // infinite loop
   var counter = setInterval (function() {
-    render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
-    //// moves the ship and re renders it
-    //this.pos = moveShip(this.pos[0], this.pos[1]);
+    ship.update();
 
     // loops though all the astroids and updates thier positions
     for (var i=0; i<astroids.length; i++) {
