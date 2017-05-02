@@ -47,28 +47,32 @@ class Astroid {
      this.src = filename;
      this.choice = Math.floor(Math.random() * 8);
      this.speed = Math.random() + 0.5;
-     this.dWidth = (Math.random() + 0.5) * 100;
+     this.dWidth = (Math.random() + 0.5) * 80; // icon is 40 - 120 px wide, high
      this.dHeight = this.dWidth;
 
      var spawn = Math.floor(Math.random()*4);
+     console.log(JSON.stringify(spawn));
+     console.log(JSON.stringify(canvas.width));
+     console.log(JSON.stringify(canvas.height));
      if (spawn == 0)
-       this.pos = [Math.random()*canvas.width, -100];
+       {this.pos = [Math.random()*canvas.width, -100];}
      else if (spawn == 1)
-       this.pos = [Math.random()*canvas.width, canvas.height];
+       {this.pos = [Math.random()*canvas.width, canvas.height];}
      else if (spawn == 2)
-       this.pos = [-100, Math.random()*canvas.height];
-     else if (spawn == 3)
-       this.pos = [canvas.width, Math.random()*canvas.height]
+       {this.pos = [-100, Math.random()*canvas.height];}
+     else
+       {this.pos = [canvas.width, Math.random()*canvas.height];}
     }
+
   }
 
 class Ship {
   constructor(filename, x, y) {
     this.src = filename;
-    this.speed = 2;
-    this.dWidth = 60;
-    this.dHeight = 60;
-    this.pos = [x, y]
+    this.speed = 1.5;
+    this.dWidth = 64;
+    this.dHeight = 64;
+    this.pos = [x, y];
   }
 }
 Ship.prototype.update = function() {
@@ -87,7 +91,7 @@ Ship.prototype.update = function() {
   render(this.src, this.pos[0], this.pos[1]);
 };
 
-function render(src, x, y, dWidth=60, dHeight=60) {
+function render(src, x, y, dWidth=64, dHeight=64) {
   var img = new Image();
   img.onload = function() {ctx.drawImage(img, x, y, dWidth, dHeight)};
   img.src = src;
@@ -143,12 +147,33 @@ function move (x, y, choice, speed) {
   return pos;
 }
 
+function collision_check() {
+    var shipRadius = this.ship.dWidth/2
+    ship_circle = {'radius': shipRadius, 'x': this.ship.pos[0] + shipRadius, 'y': this.ship.pos[1] + shipRadius}
+    for (var i=0; i<this.posArr.length; i++) {
+        var radius = astroids[i].dWidth/2;
+        var astroid_circle = {'radius': radius, 'x': this.posArr[i][0]
+        + radius, 'y': this.posArr[i][1] + radius};
+        var dx = ship_circle['x'] - astroid_circle['x'];
+        var dy = ship_circle['y'] - astroid_circle['y'];
+        var dist_apart = Math.sqrt(dx * dx + dy * dy);
+        if (dist_apart < astroid_circle['radius']+ship_circle['radius'] - 10) {
+            document.getElementById('audio').innerHTML = "<audio autoplay><source src='sounds/lose.wav' type='audio/wav'></audio>";
+            return true;
+          }
+      }
+      return false;
+}
+
+
 // create x number of astroid
 var astroids = [];
 for (var i=0; i<12; i++) {
   var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
   astroids.push(astroid);
-}
+} // these astroids currently dont generate at the correct position
+console.log(astroids);
+
 // create the spaceship
 this.ship = new Ship('images/spaceship.png', canvas.width/2, canvas.height/2)
 
@@ -158,7 +183,6 @@ window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, fa
 
 // start game loop
 // set up variables
-var end = false;
 var count = 0;
 
 // build intial astroid array
@@ -169,16 +193,17 @@ for (var i=0; i<astroids.length; i++) {
 // an array of the astroid objects positions
 this.posArr = [];
 for (var i=0; i<astroids.length; i++) {
-  var pos = [astroids[i].pos[0], astroids[i].pos[0]];
+  var pos = [astroids[i].pos[0], astroids[i].pos[1]];
   this.posArr.push(pos);
 }
+console.log(JSON.stringify(this.posArr));
 // renders the starship
 render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
 this.pos = this.ship.pos;
 
   // infinite loop
   var counter = setInterval (function() {
-    ship.update();
+  ship.update();
 
     // loops though all the astroids and updates thier positions
     for (var i=0; i<astroids.length; i++) {
@@ -187,12 +212,12 @@ this.pos = this.ship.pos;
       ctx.clearRect(0,0,canvas.width,canvas.height)
     }
     // adds one more astroid every 2 seconds
-    if (count % 100 == 0) {
+    if (count == 0 || count % 50 == 0) {
       var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
       astroids.push(astroid);
       this.posArr.push(astroid.pos);
     }
-    if (end) { // breaks loop after 10 astroids are drawn
+    if (collision_check()) { // breaks loop after 10 astroids are drawn
       clearInterval(counter);
     }
     count++;
