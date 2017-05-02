@@ -51,9 +51,6 @@ class Astroid {
      this.dHeight = this.dWidth;
 
      var spawn = Math.floor(Math.random()*4);
-     console.log(JSON.stringify(spawn));
-     console.log(JSON.stringify(canvas.width));
-     console.log(JSON.stringify(canvas.height));
      if (spawn == 0)
        {this.pos = [Math.random()*canvas.width, -100];}
      else if (spawn == 1)
@@ -76,16 +73,16 @@ class Ship {
   }
 }
 Ship.prototype.update = function() {
-  if (Key.isDown(Key.W)) {
+  if (Key.isDown(Key.W) && this.pos[1] > 0) {
     this.pos[1] -= 2 * this.speed;
   };
-  if (Key.isDown(Key.A)) {
+  if (Key.isDown(Key.A) && this.pos[0] > 0) {
     this.pos[0] -= 2 * this.speed;
   };
-  if (Key.isDown(Key.S)) {
+  if (Key.isDown(Key.S) && this.pos[1] < canvas.height-this.dHeight) {
     this.pos[1] += 2 * this.speed;
   };
-  if (Key.isDown(Key.D)) {
+  if (Key.isDown(Key.D) && this.pos[0] < canvas.width-this.dWidth) {
     this.pos[0] += 2 * this.speed;
   };
   render(this.src, this.pos[0], this.pos[1]);
