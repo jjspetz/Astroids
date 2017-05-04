@@ -2,7 +2,6 @@
   This is my project to port the PyGame astroid-dodge to HTML5 Canvas/ javascript.
   The first step overcome so far was learning how to load multiple images onto
   the canvas dynamically. After porting the original game I plan to make improvements.
-
 */
 
 window.onload = function() {
@@ -28,6 +27,8 @@ window.onload = function() {
      W: 87,
      D: 68,
      S: 83,
+     SPACE: 32,
+     ESC: 27,
 
      isDown: function(keyCode) {
        return this._pressed[keyCode];
@@ -145,12 +146,12 @@ function move (x, y, choice, speed) {
 }
 
 function collision_check() {
-    var shipRadius = this.ship.dWidth/2
-    ship_circle = {'radius': shipRadius, 'x': this.ship.pos[0] + shipRadius, 'y': this.ship.pos[1] + shipRadius}
-    for (var i=0; i<this.posArr.length; i++) {
-        var radius = astroids[i].dWidth/2;
-        var astroid_circle = {'radius': radius, 'x': this.posArr[i][0]
-        + radius, 'y': this.posArr[i][1] + radius};
+    var shipRadius = this.ship.dWidth/2;
+    ship_circle = {'radius': shipRadius, 'x': this.ship.pos[0] + shipRadius, 'y': this.ship.pos[1] + shipRadius};
+    for (var i=0; i<this.astroids.length; i++) {
+        var radius = this.astroids[i].dWidth/2;
+        var astroid_circle = {'radius': radius, 'x': this.astroids[i].pos[0]
+        + radius, 'y': this.astroids[i].pos[1] + radius};
         var dx = ship_circle['x'] - astroid_circle['x'];
         var dy = ship_circle['y'] - astroid_circle['y'];
         var dist_apart = Math.sqrt(dx * dx + dy * dy);
@@ -162,61 +163,103 @@ function collision_check() {
       return false;
 }
 
+function menu(count=0, counter=0, first=true) {
+    function clear() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.font = "30px Arial";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+    }
+  if (first) {
+    clear();
+    ctx.fillText("Use the W,A,S, and D keys to avoid the astroids", canvas.width/2, canvas.height/2 -80);
+    ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2);
+    ctx.font = "18px Arial";
+    ctx.fillText("by JJ Spetseris", canvas.width/2, canvas.height/2 + 120);
+  }
+  else {
+    clearInterval(counter);
+    setTimeout(function(){
+      clear();
+      var text = "You survived for "+  count/50 + " seconds.";
+      ctx.fillText(text, canvas.width/2, canvas.height/2);
+      ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2 + 100);
+      }, 30); // makes sure clear is delayed long enough for clearInterval to fire
 
-// create x number of astroid
-var astroids = [];
-for (var i=0; i<12; i++) {
-  var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
-  astroids.push(astroid);
-} // these astroids currently dont generate at the correct position
-console.log(astroids);
+  }
+
+var temp = setInterval (function() {
+  if (Key.isDown(Key.SPACE)) {
+    clearInterval(temp);
+    main();
+
+  }
+}, 100);
+}
+
+// creates astroid array
+this.astroids = [];
 
 // create the spaceship
 this.ship = new Ship('images/spaceship.png', canvas.width/2, canvas.height/2)
+
 
 // event listener
 window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
 window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);
 
 // start game loop
-// set up variables
-var count = 0;
+function main()  {
+  // set up variables
+  var count = 0;
 
-// build intial astroid array
-for (var i=0; i<astroids.length; i++) {
-  // setTimeout(render(astroid[i].src, astroid[i].pos[0], astroid[i].pos[1]), 100);
-  render(astroids[i].src, astroids[i].pos[0], astroids[i].pos[1], astroids[i].dWidth, astroids[i].dHeight);
-}
-// an array of the astroid objects positions
-this.posArr = [];
-for (var i=0; i<astroids.length; i++) {
-  var pos = [astroids[i].pos[0], astroids[i].pos[1]];
-  this.posArr.push(pos);
-}
-console.log(JSON.stringify(this.posArr));
-// renders the starship
-render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
-this.pos = this.ship.pos;
+  // create x number of astroids
+  this.astroids = [];
+  for (var i=0; i<10; i++) {
+    var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
+    this.astroids.push(astroid);
+  }
 
-  // infinite loop
-  var counter = setInterval (function() {
-  ship.update();
+  // start music
+  document.getElementById('audio').innerHTML = '<audio autoplay loop><source src="sounds/scifi_music.mp3" type="audio/mpeg"></audio>'
 
-    // loops though all the astroids and updates thier positions
-    for (var i=0; i<astroids.length; i++) {
-      this.posArr[i] = move(this.posArr[i][0], this.posArr[i][1], astroids[i].choice, astroids[i].speed);
-      render(astroids[i].src, this.posArr[i][0], this.posArr[i][1], astroids[i].dWidth, astroids[i].dHeight);
-      ctx.clearRect(0,0,canvas.width,canvas.height)
-    }
-    // adds one more astroid every 2 seconds
-    if (count == 0 || count % 50 == 0) {
-      var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
-      astroids.push(astroid);
-      this.posArr.push(astroid.pos);
-    }
-    if (collision_check()) { // breaks loop after 10 astroids are drawn
-      clearInterval(counter);
-    }
-    count++;
-  }, 20); // 20 = 50fps
+  // build intial astroid array
+  for (var i=0; i<this.astroids.length; i++) {
+    // setTimeout(render(astroid[i].src, astroid[i].pos[0], astroid[i].pos[1]), 100);
+    render(this.astroids[i].src, this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].dWidth, this.astroids[i].dHeight);
+  }
+  // // an array of the astroid objects positions
+  // this.astroids = [];
+  // for (var i=0; i<astroids.length; i++) {
+  //   var pos = [astroids[i].pos[0], astroids[i].pos[1]];
+  //   this.astroids.push(pos);
+  // }
+
+  // renders the starship
+  render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
+  this.pos = this.ship.pos;
+
+    // infinite loop
+    var counter = setInterval (function() {
+    ship.update();
+
+      // loops though all the astroids and updates thier positions
+      for (var i=0; i<astroids.length; i++) {
+        this.astroids[i].pos = move(this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].choice, this.astroids[i].speed);
+        render(this.astroids[i].src, this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].dWidth, this.astroids[i].dHeight);
+
+      }
+      // adds one more astroid every 2 seconds
+      if (count == 0 || count % 50 == 0) {
+        var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
+        astroids.push(astroid);
+      }
+      if (collision_check()) { // breaks loop after ship collides with an astroid
+        return menu(count, counter, false); // why is this function not being called?
+      }
+      count++;
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }, 20); // 20 = 50fps
+  }
+  menu();
 } // end of file
