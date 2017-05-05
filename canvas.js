@@ -2,6 +2,14 @@
   This is my project to port the PyGame astroid-dodge to HTML5 Canvas/ javascript.
   The first step overcome so far was learning how to load multiple images onto
   the canvas dynamically. After porting the original game I plan to make improvements.
+
+
+  TODO:
+   add rotation
+   add high score back end
+   add shooting function
+
+   consider conversion to mouse input w/ thruster
 */
 
 window.onload = function() {
@@ -189,7 +197,7 @@ function menu(count=0, counter=0, first=true) {
   }
 
 var temp = setInterval (function() {
-  if (Key.isDown(Key.SPACE)) {
+  if (Key.isDown(Key.SPACE) || Key.isDown(13)) {
     clearInterval(temp);
     main();
 
