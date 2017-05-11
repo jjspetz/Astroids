@@ -171,7 +171,7 @@ function collision_check() {
       return false;
 }
 
-function menu(count=0, first=true) {
+function menu(count=0, counter=0, first=true) {
     function clear() {
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.font = "30px Arial";
@@ -186,15 +186,23 @@ function menu(count=0, first=true) {
     ctx.fillText("by JJ Spetseris", canvas.width/2, canvas.height/2 + 120);
   }
   else {
+    clearInterval(counter);
+    setTimeout(function(){
       clear();
       var text = "You survived for "+  count/50 + " seconds.";
       ctx.fillText(text, canvas.width/2, canvas.height/2);
       ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2 + 100);
+      }, 30); // makes sure clear is delayed long enough for clearInterval to fire
+
   }
 
+var temp = setInterval (function() {
   if (Key.isDown(Key.SPACE) || Key.isDown(13)) {
-    setup();
+    clearInterval(temp);
+    main();
+
   }
+}, 100);
 }
 
 // creates astroid array
@@ -207,10 +215,9 @@ this.ship = new Ship('images/spaceship.png', canvas.width/2, canvas.height/2)
 // event listener
 window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
 window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);
-window.addEventListener('touchend', function(event) { Key.onKeydown(65); }, false);
 
 // start game loop
-function setup()  {
+function main()  {
   // set up variables
   var count = 0;
 
@@ -229,15 +236,19 @@ function setup()  {
     // setTimeout(render(astroid[i].src, astroid[i].pos[0], astroid[i].pos[1]), 100);
     render(this.astroids[i].src, this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].dWidth, this.astroids[i].dHeight);
   }
+  // // an array of the astroid objects positions
+  // this.astroids = [];
+  // for (var i=0; i<astroids.length; i++) {
+  //   var pos = [astroids[i].pos[0], astroids[i].pos[1]];
+  //   this.astroids.push(pos);
+  // }
 
   // renders the starship
   render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
   this.pos = this.ship.pos;
 
-  mainloop();
-}
     // infinite loop
-    function mainloop() {
+    var counter = setInterval (function() {
     ship.update();
 
       // loops though all the astroids and updates thier positions
@@ -247,17 +258,16 @@ function setup()  {
 
       }
       // adds one more astroid every 2 seconds
-      if (count == 0 || count % 100 == 0) {
+      if (count == 0 || count % 50 == 0) {
         var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
         astroids.push(astroid);
       }
       if (collision_check()) { // breaks loop after ship collides with an astroid
-        return menu(count, false); // why is this function not being called?
+        return menu(count, counter, false); // why is this function not being called?
       }
       count++;
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      window.requestAnimationFrame(mainloop());
-    }
-
+    }, 20); // 20 = 50fps
+  }
   menu();
 } // end of file
