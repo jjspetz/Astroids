@@ -7,3 +7,5 @@ it takes for an image to load using the onload function inside the for loop.
 The astroid generation is up and running the next step is to add the key event listeners
 ### 5/3
 The functionality of the original PyGame is complete. Now I will need to work on the additional features I wanted.
+### 5/11
+window.requestAnimationFrame() has replaced setInterval() and has broken everything. Old working version is saved as v1. Code will have to be completely rewritten to imporve performance.
