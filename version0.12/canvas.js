@@ -23,10 +23,10 @@ window.onload = function() {
 
   // builds list of astroid sources
  var astroidName = [
-   'images/astroid1.png',
-   'images/astroid2.png',
-   'images/astroid3.png',
-   'images/astroid4.png'];
+   '../images/astroid1.png',
+   '../images/astroid2.png',
+   '../images/astroid3.png',
+   '../images/astroid4.png'];
 
    var Key = {
      _pressed: {},
@@ -164,7 +164,7 @@ function collision_check() {
         var dy = ship_circle['y'] - astroid_circle['y'];
         var dist_apart = Math.sqrt(dx * dx + dy * dy);
         if (dist_apart < astroid_circle['radius']+ship_circle['radius'] - 10) {
-            document.getElementById('audio').innerHTML = "<audio autoplay><source src='sounds/lose.wav' type='audio/wav'></audio>";
+            document.getElementById('audio').innerHTML = "<audio autoplay><source src='../sounds/lose.wav' type='audio/wav'></audio>";
             return true;
           }
       }
@@ -192,28 +192,32 @@ function menu(count=0, first=true) {
       ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2 + 100);
   }
 
-  if (Key.isDown(Key.SPACE) || Key.isDown(13)) {
-    setup();
-  }
+  var temp = setInterval (function() {
+    if (Key.isDown(Key.SPACE) || Key.isDown(13)) {
+      clearInterval(temp);
+      setup();
+
+    }
+  }, 100);
 }
 
 // creates astroid array
 this.astroids = [];
 
+// set up variables
+var count = 0;
+
 // create the spaceship
-this.ship = new Ship('images/spaceship.png', canvas.width/2, canvas.height/2)
+this.ship = new Ship('../images/spaceship.png', canvas.width/2, canvas.height/2)
 
 
 // event listener
 window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
 window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);
-window.addEventListener('touchend', function(event) { Key.onKeydown(65); }, false);
+// window.addEventListener('touchend', function(event) { Key.onKeydown(65); }, false);
 
 // start game loop
 function setup()  {
-  // set up variables
-  var count = 0;
-
   // create x number of astroids
   this.astroids = [];
   for (var i=0; i<10; i++) {
@@ -222,7 +226,7 @@ function setup()  {
   }
 
   // start music
-  document.getElementById('audio').innerHTML = '<audio autoplay loop><source src="sounds/scifi_music.mp3" type="audio/mpeg"></audio>'
+  document.getElementById('audio').innerHTML = '<audio autoplay loop><source src="../sounds/scifi_music.mp3" type="audio/mpeg"></audio>'
 
   // build intial astroid array
   for (var i=0; i<this.astroids.length; i++) {
@@ -233,7 +237,6 @@ function setup()  {
   // renders the starship
   render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
   this.pos = this.ship.pos;
-
   mainloop();
 }
     // infinite loop
@@ -249,15 +252,19 @@ function setup()  {
       // adds one more astroid every 2 seconds
       if (count == 0 || count % 100 == 0) {
         var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
-        astroids.push(astroid);
+        this.astroids.push(astroid);
       }
       if (collision_check()) { // breaks loop after ship collides with an astroid
         return menu(count, false); // why is this function not being called?
       }
       count++;
       ctx.clearRect(0,0,canvas.width,canvas.height);
-      window.requestAnimationFrame(mainloop());
+      requestAnimationFrame(mainloop());
     }
 
-  menu();
+  setup();
+  mainloop();
 } // end of file
+
+
+// this is messing up the animationFrame loop
