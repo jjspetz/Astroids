@@ -80,22 +80,23 @@ class Ship {
     this.dHeight = 64;
     this.pos = [x, y];
   }
+
+  update() {
+    if (Key.isDown(Key.W) && this.pos[1] > 0) {
+      this.pos[1] -= 2 * this.speed;
+    };
+    if (Key.isDown(Key.A) && this.pos[0] > 0) {
+      this.pos[0] -= 2 * this.speed;
+    };
+    if (Key.isDown(Key.S) && this.pos[1] < canvas.height-this.dHeight) {
+      this.pos[1] += 2 * this.speed;
+    };
+    if (Key.isDown(Key.D) && this.pos[0] < canvas.width-this.dWidth) {
+      this.pos[0] += 2 * this.speed;
+    };
+    render(this.src, this.pos[0], this.pos[1]);
+  };
 }
-Ship.prototype.update = function() {
-  if (Key.isDown(Key.W) && this.pos[1] > 0) {
-    this.pos[1] -= 2 * this.speed;
-  };
-  if (Key.isDown(Key.A) && this.pos[0] > 0) {
-    this.pos[0] -= 2 * this.speed;
-  };
-  if (Key.isDown(Key.S) && this.pos[1] < canvas.height-this.dHeight) {
-    this.pos[1] += 2 * this.speed;
-  };
-  if (Key.isDown(Key.D) && this.pos[0] < canvas.width-this.dWidth) {
-    this.pos[0] += 2 * this.speed;
-  };
-  render(this.src, this.pos[0], this.pos[1]);
-};
 
 function render(src, x, y, dWidth=64, dHeight=64) {
   var img = new Image();
@@ -251,23 +252,26 @@ function main()  {
     var counter = setInterval (function() {
     ship.update();
 
-      // loops though all the astroids and updates thier positions
-      for (var i=0; i<astroids.length; i++) {
-        this.astroids[i].pos = move(this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].choice, this.astroids[i].speed);
-        render(this.astroids[i].src, this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].dWidth, this.astroids[i].dHeight);
+    // loops though all the astroids and updates thier positions
+    for (var i=0; i<astroids.length; i++) {
+      this.astroids[i].pos = move(this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].choice, this.astroids[i].speed);
+      render(this.astroids[i].src, this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].dWidth, this.astroids[i].dHeight);
 
-      }
-      // adds one more astroid every 2 seconds
-      if (count == 0 || count % 50 == 0) {
-        var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
-        astroids.push(astroid);
-      }
-      if (collision_check()) { // breaks loop after ship collides with an astroid
-        return menu(count, counter, false); // why is this function not being called?
-      }
-      count++;
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+    // adds one more astroid every 2 seconds
+    if (count == 0 || count % 50 == 0) {
+      var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
+      astroids.push(astroid);
+    }
+    if (collision_check()) { // breaks loop after ship collides with an astroid
+      return menu(count, counter, false); // why is this function not being called?
+    }
+    count++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     }, 20); // 20 = 50fps
+      
   }
+
+  // function(s) that run on start
   menu();
 } // end of file

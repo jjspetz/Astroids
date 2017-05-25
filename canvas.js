@@ -236,12 +236,7 @@ function main()  {
     // setTimeout(render(astroid[i].src, astroid[i].pos[0], astroid[i].pos[1]), 100);
     render(this.astroids[i].src, this.astroids[i].pos[0], this.astroids[i].pos[1], this.astroids[i].dWidth, this.astroids[i].dHeight);
   }
-  // // an array of the astroid objects positions
-  // this.astroids = [];
-  // for (var i=0; i<astroids.length; i++) {
-  //   var pos = [astroids[i].pos[0], astroids[i].pos[1]];
-  //   this.astroids.push(pos);
-  // }
+
 
   // renders the starship
   render(this.ship.src, this.ship.pos[0], this.ship.pos[1], this.ship.dWidth, this.ship.dHeight);
