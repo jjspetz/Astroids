@@ -17,6 +17,16 @@ window.onload = function() {
   // global variables
   var ship;
   var animation;
+  var astroids = [];
+  var count = 0;
+
+  // builds list of astroid sources
+  var astroidName = [
+    '../images/astroid1.png',
+    '../images/astroid2.png',
+    '../images/astroid3.png',
+    '../images/astroid4.png'
+  ];
 
   // event listeners
   var Key = {
@@ -45,10 +55,11 @@ window.onload = function() {
   window.addEventListener('keyup', function(event) { Key.onKeyup(event); }, false);
   window.addEventListener('keydown', function(event) { Key.onKeydown(event); }, false);
 
+  // clases
   class Ship {
     constructor(filename, x, y) {
       this.src = filename;
-      this.speed = 2;
+      this.speed = 3;
       this.dWidth = 64;
       this.dHeight = 64;
       this.x = x;
@@ -67,46 +78,139 @@ window.onload = function() {
       if (Key.isDown(Key.D) && this.x < canvas.width-100) {
         this.x += this.speed;
       };
-
-      render(this.src, this.x, this.y);
     }
   }
 
-  // need to render all pics at once?
-  function render(src, x, y, dWidth=64, dHeight=64) {
+  class Astroid {
+    constructor(filename) {
+       this.src = filename;
+       this.choice = Math.floor(Math.random() * 8);
+       this.speed = Math.random() + 0.5;
+       this.dWidth = (Math.random() + 0.5) * 80; // icon is 40 - 120 px wide, high
+       this.dHeight = this.dWidth;
+
+       var spawn = Math.floor(Math.random()*4);
+       if (spawn == 0)
+         {this.pos = [Math.random()*canvas.width, -100];}
+       else if (spawn == 1)
+         {this.pos = [Math.random()*canvas.width, canvas.height];}
+       else if (spawn == 2)
+         {this.pos = [-100, Math.random()*canvas.height];}
+       else
+         {this.pos = [canvas.width, Math.random()*canvas.height];}
+      }
+
+      move (posx, posy, choice, speed) {
+        var x = posx;
+        var y = posy;
+        // script for astroid's random vector
+        if (choice == 0) {
+          x += 2 * speed;
+        }
+        else if (choice == 1) {
+            x += 1 * speed;
+            y += 1 * speed;
+          }
+        else if (choice == 2) {
+            x += -1 * speed;
+            y += 1 * speed;
+          }
+        else if (choice == 3) {
+            x += -2 * speed;
+          }
+        else if (choice == 4) {
+            y += 2 * speed;
+          }
+        else if (choice == 5) {
+            x += 1 * speed;
+            y += -1 * speed;
+          }
+        else if (choice == 6) {
+            x += -1 * speed;
+            y += -1 * speed;
+          }
+        else if (choice == 7) {
+            y += -2 * speed;
+          }
+        // resets astroid when it moves off the edge of the screen
+        if (x > canvas.width + 100) {
+            x = 0;
+          }
+        else if (x < -100) {
+            x = canvas.width- 20;
+          }
+        else if (y > canvas.height + 100) {
+            y = 0;
+          }
+        else if (y < -100) {
+            y = canvas.height - 20;
+          }
+
+        this.pos = [x, y];
+        this.x = x;
+        this.y = y;
+        render(this);
+      }
+    }
+
+  // need to render all pics at once
+  function render(obj) {
     var img = new Image();
     img.onload = function() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.drawImage(img, x, y, dWidth, dHeight)
+      ctx.drawImage(img, obj.x, obj.y, obj.dWidth, obj.dHeight)
     };
-    img.src = src;
+    img.src = obj.src;
   }
 
+  // game code
   function setup() {
+    // reintialize globals
+    astroids = [];
+    count = 0;
     // create a ship instance
     ship = new Ship('../images/spaceship.png', canvas.width/2, canvas.height/2);
     // start music
     // document.getElementById('audio').innerHTML = '<audio autoplay loop><source src="../sounds/scifi_music.mp3" type="audio/mpeg"></audio>'
+    // create initial astroids
+    for (var i=0; i<10; i++) {
+      var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
+      astroids.push(astroid);
+    }
 
-    window.requestAnimationFrame( mainloop );
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    mainloop();
   }
 
   var mainloop = function() {
     ship.update();
-    animation = window.requestAnimationFrame( mainloop );
+    render(ship)
+    for (var i=0; i<astroids.length; i++) {
+      astroids[i].move(astroids[i].pos[0], astroids[i].pos[1], astroids[i].choice, astroids[i].speed);
+    }
+    // console.log(astroids[0].pos);
+    // astroids.push(new Astroid(astroidName[Math.floor(Math.random()*4)]));
+    // console.log(astroids.length);
+
+    // breaks if collision
+    if (!collisionCheck()) {
+      animation = window.requestAnimationFrame( mainloop );
+    } else {
+      menu(count, false);
+    }
+    count++;
   };
 
-  function collision_check() {
-      var shipRadius = this.ship.dWidth/2;
-      ship_circle = {'radius': shipRadius, 'x': this.ship.pos[0] + shipRadius, 'y': this.ship.pos[1] + shipRadius};
-      for (var i=0; i<this.astroids.length; i++) {
-          var radius = this.astroids[i].dWidth/2;
-          var astroid_circle = {'radius': radius, 'x': this.astroids[i].pos[0]
-          + radius, 'y': this.astroids[i].pos[1] + radius};
-          var dx = ship_circle['x'] - astroid_circle['x'];
-          var dy = ship_circle['y'] - astroid_circle['y'];
-          var dist_apart = Math.sqrt(dx * dx + dy * dy);
-          if (dist_apart < astroid_circle['radius']+ship_circle['radius'] - 10) {
+  function collisionCheck() {
+      var shipRadius = ship.dWidth/2;
+      var shipCircle = {'radius': shipRadius, 'x': ship.x + shipRadius, 'y': ship.y + shipRadius};
+      for (var i=0; i<astroids.length; i++) {
+          var radius = astroids[i].dWidth/2;
+          var astroidCircle = {'radius': radius, 'x': astroids[i].pos[0]
+          + radius, 'y': astroids[i].pos[1] + radius};
+          var dx = shipCircle['x'] - astroidCircle['x'];
+          var dy = shipCircle['y'] - astroidCircle['y'];
+          var distApart = Math.sqrt(dx * dx + dy * dy);
+          if (distApart < astroidCircle['radius'] + shipCircle['radius'] - 10) {
               document.getElementById('audio').innerHTML = "<audio autoplay><source src='../sounds/lose.wav' type='audio/wav'></audio>";
               return true;
             }
@@ -116,7 +220,6 @@ window.onload = function() {
 
   function menu(count=0, first=true) {
     function clear() {
-      window.cancelAnimationFrame(animation);
       ctx.clearRect(0,0,canvas.width,canvas.height);
       ctx.font = "30px Arial";
       ctx.fillStyle = "white";
@@ -130,11 +233,12 @@ window.onload = function() {
       ctx.fillText("by JJ Spetseris", canvas.width/2, canvas.height/2 + 120);
     }
     else {
-        // cancelAnimationFrame(mainloop());
-        clear();
-        var text = "You survived for "+  count/50 + " seconds.";
-        ctx.fillText(text, canvas.width/2, canvas.height/2);
-        ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2 + 100);
+        setTimeout(function(){
+          clear();
+          var text = "You survived for "+  (count/60).toFixed(2) + " seconds.";
+          ctx.fillText(text, canvas.width/2, canvas.height/2);
+          ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2 + 100);
+        }, 0);
     }
 
     var temp = setInterval (function() {
@@ -146,6 +250,6 @@ window.onload = function() {
     }, 100);
   }
 
-    // start the mainloop
+    // start the game
     menu();
 }

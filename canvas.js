@@ -55,7 +55,7 @@ class Astroid {
   constructor(filename) {
      this.src = filename;
      this.choice = Math.floor(Math.random() * 8);
-     this.speed = Math.random() + 0.5;
+     this.speed = Math.random() + 1;
      this.dWidth = (Math.random() + 0.5) * 80; // icon is 40 - 120 px wide, high
      this.dHeight = this.dWidth;
 
@@ -75,7 +75,7 @@ class Astroid {
 class Ship {
   constructor(filename, x, y) {
     this.src = filename;
-    this.speed = 1.5;
+    this.speed = 3;
     this.dWidth = 64;
     this.dHeight = 64;
     this.pos = [x, y];
@@ -189,7 +189,7 @@ function menu(count=0, counter=0, first=true) {
     clearInterval(counter);
     setTimeout(function(){
       clear();
-      var text = "You survived for "+  count/50 + " seconds.";
+      var text = "You survived for "+  count/25 + " seconds.";
       ctx.fillText(text, canvas.width/2, canvas.height/2);
       ctx.fillText("Press SPACE to begin.", canvas.width/2, canvas.height/2 + 100);
       }, 30); // makes sure clear is delayed long enough for clearInterval to fire
@@ -253,16 +253,16 @@ function main()  {
 
       }
       // adds one more astroid every 2 seconds
-      if (count == 0 || count % 50 == 0) {
+      if (count == 0 || count % 25 == 0) {
         var astroid = new Astroid(astroidName[Math.floor(Math.random()*4)]);
         astroids.push(astroid);
       }
       if (collision_check()) { // breaks loop after ship collides with an astroid
-        return menu(count, counter, false); // why is this function not being called?
+        return menu(count, counter, false);
       }
       count++;
       ctx.clearRect(0,0,canvas.width,canvas.height);
-    }, 20); // 20 = 50fps
+    }, 40); // 40 = 25 fps
   }
   menu();
 } // end of file
